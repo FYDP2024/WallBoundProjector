@@ -1,0 +1,10 @@
+version: "0.2.1"
+services:
+  ws8wavemeter:
+    container_name: frontend
+    build:
+      context: ./
+      dockerfile: ./frontend/Dockerfile
+    network_mode: host
+    # to run in simulation mode, include "--simulation" in the entrypoint command after port number
+    entrypoint: ["npm", "start"]
