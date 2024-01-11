@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from "react";
-
-const Canvas = ({}) => {
-
-    const [attendees, setAttendees] = useState([]);
-    const [users, setUsers] = useState([]);
-    const [selectedUser, setSelectedUser] = useState('');
+import CanvasImage from "./CanvasImage";
 
 
+const Canvas = ({images}) => {
 
-
+    
 
     return (
         <div className="canvas">
-            <h1>Canvas</h1>
+            
+            <div className="reference_point">
+                +
+            </div>
+
+            {
+                images.map((img, index)=>(
+                   <CanvasImage key={index} dimensions={img} /> 
+                   
+                ))
+            }
             
 
         </div>
