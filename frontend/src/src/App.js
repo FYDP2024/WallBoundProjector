@@ -1,7 +1,15 @@
 import logo from './logo.svg';
+import { useRef } from 'react';
 import './App.css';
 import Canvas from './components/Canvas';
 import Sidebar from './components/Sidebar';
+import Stats from './components/Stats';
+
+import {
+  exportComponentAsJPEG,
+  exportComponentAsPDF,
+  exportComponentAsPNG
+} from "react-component-export-image";
 
 function App() {
 
@@ -30,13 +38,19 @@ function App() {
   },
 ]
 
+const componentRef = useRef();
+
   return (
     <div className="App">
       <Sidebar images={images}/>
       <div className='workspace'>
         <h1>Canvas</h1>
-        <Canvas images={images}/>
+        <button onClick={() => exportComponentAsPNG(componentRef)}>
+        Export As PNG
+        </button>
+        <Canvas images={images} ref={componentRef}/>
       </div>
+      <Stats />
       
     </div>
   );

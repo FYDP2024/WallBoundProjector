@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import CanvasImage from "./CanvasImage";
 
 
-const Canvas = ({images}) => {
+
+const Canvas = React.forwardRef(({images},ref) => {
 
     
 
     return (
-        <div className="canvas">
+        <div className="canvas" ref={ref}>
             
             <div className="reference_point">
                 +
@@ -23,6 +24,6 @@ const Canvas = ({images}) => {
 
         </div>
     );
-};
+});
 
 export default Canvas;
