@@ -4,7 +4,7 @@ const Sidebar = ({images}) => {
 
     return (
         <div className="sidebar">
-            <h1>Images</h1>
+            <h3>Images</h3>
             {
                 images.map((img,index) =>(
                     <div className="image-preview" key={index}>
@@ -15,7 +15,8 @@ const Sidebar = ({images}) => {
                         <p><b>Name: </b>{img.url}</p>
                         <p><b>x position:</b> {img.x_pos}</p>
                         <p><b>y position:</b> {img.y_pos}</p>
-                        <p><b>Size:</b> {img.width}cm {img.height}cm</p>
+                        <p><b>Width:</b> {img.width} cm</p>
+                        <p><b>Height:</b> {img.height} cm</p>
                         </div>
                         </div>
                         
