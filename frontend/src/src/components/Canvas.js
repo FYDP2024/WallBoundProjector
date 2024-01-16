@@ -9,10 +9,6 @@ const Canvas = React.forwardRef(({images},ref) => {
 
     return (
         <div className="canvas" ref={ref}>
-            
-            <div className="reference_point">
-                +
-            </div>
 
             {
                 images.map((img, index)=>(

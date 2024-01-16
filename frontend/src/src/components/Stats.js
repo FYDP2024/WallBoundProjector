@@ -7,14 +7,11 @@ const Stats = ({}) => {
 
     return (
         <div className="sidebar">
-            <h1>Info</h1>
-            <h2>Distance: {distance}cm</h2>
-            <h2>Roll (x): {tilt[0]}°</h2>
-            <h2>Roll (y): {tilt[1]}°</h2>
-            <h2>Roll (z): {tilt[2]}°</h2>
-
-            
-
+            <h3>Info</h3>
+            <div>Distance: {distance}cm</div>
+            <div>Roll (x): {tilt[0]}°</div>
+            <div>Roll (y): {tilt[1]}°</div>
+            <div>Roll (z): {tilt[2]}°</div>
         </div>
     );
 };
