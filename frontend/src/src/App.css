@@ -35,6 +35,10 @@
   overflow: hidden;
 }
 
+.canvas-container {
+  padding-top: 15px;
+}
+
 .canvas-image {
   position: absolute;
   z-index: 1;
@@ -42,7 +46,8 @@
   background-size: 100% 100%;
 }
 
-body, html {
+body,
+html {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -57,16 +62,18 @@ body, html {
   width: 25%;
   overflow-y: auto;
   border: 1px solid #ccc;
+  padding: 15px;
 }
 
 .right-column {
   width: 20%;
   overflow-y: auto;
   border: 1px solid #ccc;
+  padding: 15px;
 }
 
 .middle-column {
   flex: 1;
   border: 1px solid #ccc;
+  padding: 15px;
 }
-
