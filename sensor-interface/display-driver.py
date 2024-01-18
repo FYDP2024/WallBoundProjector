@@ -30,6 +30,7 @@ class DisplayController():
 
 
     def camera_poll(self):
+        last_time = 0
         while True:
             try:
                 self.screen.fill(BLACK)
@@ -39,10 +40,10 @@ class DisplayController():
                 
                 pygame.display.update()
         
-                file_time = os.path.getctime(self.img_filename)
+                file_time = os.path.getctime(self.img_path)
                 if last_time < file_time:
                     print("got a more recent pic")
-                    img = pygame.image.load(img_filename)
+                    self.img = pygame.image.load(self.img_filename)
                     last_time = file_time
             except KeyboardInterrupt:
                 
