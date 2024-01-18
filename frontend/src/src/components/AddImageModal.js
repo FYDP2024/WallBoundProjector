@@ -47,15 +47,20 @@ const AddImageModal = ({
     setHeight(e.target.value);
   };
 
-  const handleUpload = () => {
+  const handleTabSelect = (selectedTab) => {
+    setActiveTab(selectedTab);
+  };
+
+  const handleUpload = async () => {
     if (selectedFile) {
       const formData = new FormData();
       formData.append("image", selectedFile);
-      const response = fetch("http://localhost:3001/upload", {
+      const response = await fetch("http://localhost:3001/upload", {
         method: "POST",
         body: formData,
       });
-      setuploadedFile(selectedFile.name);
+      const data = await response.json();
+      setuploadedFile(data.name);
     }
   };
 
@@ -65,10 +70,6 @@ const AddImageModal = ({
     } else if (activeTab === "previous") {
       previousImageAdded(selectedImage);
     }
-  };
-
-  const handleTabSelect = (selectedTab) => {
-    setActiveTab(selectedTab);
   };
 
   return (
@@ -92,6 +93,7 @@ const AddImageModal = ({
                   <Form.Control type="file" onChange={handleFileChange} />
                   {uploadedFile && <p>Uploaded file: {uploadedFile}</p>}
                   <Button
+                    type="button"
                     variant="primary"
                     onClick={handleUpload}
                     className="mt-2"
