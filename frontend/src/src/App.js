@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { exportComponentAsPNG } from "react-component-export-image";
 import html2canvas from "html2canvas";
 import Canvas from "./components/Canvas";
@@ -8,16 +8,14 @@ import AddImageModal from "./components/AddImageModal";
 import "./App.css";
 
 function App() {
-  const [imageDimensions, setImageDimensions] = useState({
-    "terraria.png": { width: 160, height: 200 },
-    "poster.png": { width: 140, height: 200 },
-  });
-  const [currentImages, setCurrentImages] = useState([
-    { url: "terraria.png", width: 160, height: 200, x_pos: 200, y_pos: 80 },
-    { url: "poster.png", width: 140, height: 200, x_pos: 50, y_pos: 150 },
-  ]);
+  const [imageDimensions, setImageDimensions] = useState({});
+  const [currentImages, setCurrentImages] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [drafts, setDrafts] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/clear", { method: "GET" });
+  }, []);
 
   const handleShow = () => setShowModal(true);
 

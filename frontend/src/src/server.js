@@ -10,21 +10,64 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-const storage = multer.diskStorage({
-  destination: path.join(__dirname, "../public/imgs"),
-  filename: (req, file, cb) => {
-    cb(null, file.originalname);
-  },
-});
-const upload = multer({ storage });
+const imgsDir = path.join(__dirname, "../public/imgs");
 const draftsDir = path.join(__dirname, "../public/drafts");
 
-app.post("/upload", upload.single("image"), (req, res) => {
-  res.json({ message: "Image uploaded successfully" });
+// function to delete all files in the imgs and drafts folders
+const deleteAllFiles = () => {
+  fs.readdir(imgsDir, (err, files) => {
+    if (err) {
+      return;
+    }
+    files.forEach((file) => {
+      const filePath = path.join(imgsDir, file);
+      fs.unlinkSync(filePath);
+    });
+  });
+  fs.readdir(draftsDir, (err, files) => {
+    if (err) {
+      return;
+    }
+    files.forEach((file) => {
+      const filePath = path.join(draftsDir, file);
+      fs.unlinkSync(filePath);
+    });
+  });
+};
+
+// determine if the image name already exists and append (1), (2), ...
+const storage = multer.diskStorage({
+  destination: imgsDir,
+  filename: function (req, file, cb) {
+    const originalname = file.originalname;
+    const extension = path.extname(originalname);
+    const basename = path.basename(originalname, extension);
+    let fileIndex = 1;
+    let newFilename = originalname;
+    while (fs.existsSync(path.join(imgsDir, newFilename))) {
+      newFilename = `${basename} (${fileIndex++})${extension}`;
+    }
+    cb(null, newFilename);
+  },
 });
 
+const upload = multer({ storage: storage });
+
+// clear all files from imgs and drafts folders
+app.get("/clear", (req, res) => {
+  deleteAllFiles();
+  res.json({ message: "All files cleared successfully" });
+});
+
+// upload new image
+app.post("/upload", upload.single("image"), (req, res) => {
+  const uploadedFilename = req.file.filename;
+  res.json({ name: uploadedFilename });
+});
+
+// get a list of all images previously uploaded
 app.get("/getImages", (req, res) => {
-  const imgDir = path.join(__dirname, "../public/imgs");
+  const imgDir = imgsDir;
   fs.readdir(imgDir, (err, files) => {
     if (err) {
       console.error("Error reading images directory", err);
@@ -41,6 +84,7 @@ app.get("/getImages", (req, res) => {
   });
 });
 
+// get a list of all previous json drafts
 const getDraftFiles = () => {
   return fs
     .readdirSync(draftsDir)
@@ -48,6 +92,7 @@ const getDraftFiles = () => {
     .sort();
 };
 
+// determine the file name for the next draft
 const getNextDraftFileName = () => {
   const draftFiles = getDraftFiles();
   const lastFile = draftFiles[draftFiles.length - 1];
@@ -59,6 +104,7 @@ const getNextDraftFileName = () => {
   return `Draft_${nextNumber}.json`;
 };
 
+// save new draft as a json file
 app.post("/saveDraft", (req, res) => {
   const { images } = req.body;
   const nextFileName = getNextDraftFileName();
@@ -72,6 +118,7 @@ app.post("/saveDraft", (req, res) => {
   });
 });
 
+// get a list of all drafts (json file and png image)
 app.get("/getDrafts", (req, res) => {
   const draftFiles = getDraftFiles();
   const draftImages = getDraftImageFiles();
@@ -86,6 +133,7 @@ app.get("/getDrafts", (req, res) => {
   }
 });
 
+// get a specific json file
 app.get("/getDraft/:fileName", (req, res) => {
   const { fileName } = req.params;
   const filePath = path.join(draftsDir, fileName);
@@ -94,6 +142,7 @@ app.get("/getDraft/:fileName", (req, res) => {
   res.json({ images });
 });
 
+// save an image of the canvas as a draft
 app.post("/saveCanvasImage", (req, res) => {
   const { imageData } = req.body;
   const nextFileName = getNextDraftImageFileName();
@@ -110,6 +159,7 @@ app.post("/saveCanvasImage", (req, res) => {
   }
 });
 
+// determine the file name for the next image draft
 const getNextDraftImageFileName = () => {
   const draftFiles = getDraftImageFiles();
   const lastFile = draftFiles[draftFiles.length - 1];
@@ -121,6 +171,7 @@ const getNextDraftImageFileName = () => {
   return `Draft_${nextNumber}.png`;
 };
 
+// get a list of all previous image drafts
 const getDraftImageFiles = () => {
   return fs
     .readdirSync(draftsDir)
