@@ -27,7 +27,7 @@ class CameraController():
                 print("Picture taken")
             except KeyboardInterrupt:
                 break
-            time.sleep(0.5)
+            time.sleep(0.8)
         
         
     
