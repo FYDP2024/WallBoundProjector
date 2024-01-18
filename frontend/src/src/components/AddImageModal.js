@@ -47,11 +47,11 @@ const AddImageModal = ({
     setHeight(e.target.value);
   };
 
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (selectedFile) {
       const formData = new FormData();
       formData.append("image", selectedFile);
-      const response = await fetch("http://localhost:3001/upload", {
+      const response = fetch("http://localhost:3001/upload", {
         method: "POST",
         body: formData,
       });

@@ -2,7 +2,7 @@ import React from "react";
 
 const Sidebar = ({ images, deleteCurrentImage }) => {
   return (
-    <div className="sidebar">
+    <div>
       <h3>Images</h3>
       {images.map((img, index) => (
         <div className="image-preview" key={index}>
@@ -11,22 +11,22 @@ const Sidebar = ({ images, deleteCurrentImage }) => {
           <div className="prev-row">
             <img className="thumbnail" src={"imgs/" + img.url} alt={index} />
             <div>
-              <p>
+              <div>
                 <b>Name: </b>
                 {img.url}
-              </p>
-              <p>
+              </div>
+              <div>
                 <b>x position:</b> {img.x_pos}
-              </p>
-              <p>
+              </div>
+              <div>
                 <b>y position:</b> {img.y_pos}
-              </p>
-              <p>
+              </div>
+              <div>
                 <b>Width:</b> {img.width} cm
-              </p>
-              <p>
+              </div>
+              <div>
                 <b>Height:</b> {img.height} cm
-              </p>
+              </div>
             </div>
           </div>
         </div>
