@@ -9,7 +9,7 @@ class CameraController():
         try:
             self.picam = Picamera2()
             self.cam_config = self.picam.create_preview_configuration()
-            self.picam.configure(config)
+            self.picam.configure(self.cam_config)
             self.picam.start()
         except Exception as e:
             print(e)
