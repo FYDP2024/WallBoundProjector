@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import { exportComponentAsPNG } from "react-component-export-image";
 import html2canvas from "html2canvas";
 import Canvas from "./components/Canvas";
 import Sidebar from "./components/Sidebar";
@@ -21,6 +20,22 @@ function App() {
 
   const handleClose = () => setShowModal(false);
 
+  // onEdit/onSave
+  const handleEditAndSave = (image) => {
+    if (image.isEdit === false) {
+      setCurrentImages((prevImages) =>
+        prevImages.map((i) =>
+          i.url === image.url ? { ...image, isEdit: true } : i
+        )
+      );
+    } else {
+      let updatedImage = { ...image, isEdit: false };
+      setCurrentImages((prevImages) =>
+        prevImages.map((i) => (i.url === updatedImage.url ? updatedImage : i))
+      );
+    }
+  };
+
   // add image modal - uploaded a new image
   const newImageUploaded = (name, w, h) => {
     setImageDimensions({
@@ -28,7 +43,14 @@ function App() {
       [name]: { width: Number(w), height: Number(h) },
     });
     const images = currentImages;
-    images.push({ url: name, width: w, height: h, x_pos: 0, y_pos: 0 });
+    images.push({
+      url: name,
+      isEdit: false,
+      width: w,
+      height: h,
+      x_pos: 0,
+      y_pos: 0,
+    });
     setCurrentImages(images);
     setShowModal(false);
   };
@@ -39,6 +61,7 @@ function App() {
     const images = currentImages;
     images.push({
       url: name,
+      isEdit: false,
       width: imageToAdd.width,
       height: imageToAdd.height,
       x_pos: 0,
@@ -99,6 +122,9 @@ function App() {
           <Sidebar
             images={currentImages}
             deleteCurrentImage={(name) => deleteCurrentImage(name)}
+            handleEditAndSave={(image) => {
+              handleEditAndSave(image);
+            }}
           />
         </div>
       </div>

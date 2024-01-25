@@ -70,7 +70,6 @@ app.get("/getImages", (req, res) => {
   const imgDir = imgsDir;
   fs.readdir(imgDir, (err, files) => {
     if (err) {
-      console.error("Error reading images directory", err);
       res.status(500).json({ error: "Internal Server Error" });
     } else {
       const imageNames = files.filter(

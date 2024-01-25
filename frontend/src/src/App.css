@@ -71,3 +71,7 @@ html {
   border: 1px solid #ccc;
   padding: 15px;
 }
+
+.stats-drafts {
+  margin-top: 15px;
+}
