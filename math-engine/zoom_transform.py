@@ -13,9 +13,10 @@ THROW_RATIO = 88/120 #converts distance to width of projector
 INPUT_IMAGE_DIMENSIONS_IRL = (4,4) #in meters (h,w)
 SET_INPUT_IMAGE_DIMENSIONS_PX = (4000,4000)
 ZOOM_FOLDER = shared_transform.CURRENT_FOLDER + "\\zoom_imgs\\"
-#input distance in meters
-def zoom_transform(distance):
-    unskewed_image = shared_transform.read_img(ZOOM_FOLDER + "dumb.jpg") 
+#input distance in meters and img_path of img to transform
+#returns path of saved image
+def zoom_transform(distance, img_path = ZOOM_FOLDER + "dumb.jpg"):
+    unskewed_image = shared_transform.read_img(img_path) 
 
     if unskewed_image.shape[0] < SET_INPUT_IMAGE_DIMENSIONS_PX[0]: #paste onto transparent background if img is smaller than 4k
         transparent_bg = cv2.imread(ZOOM_FOLDER + "4kbg.png")
@@ -42,14 +43,16 @@ def zoom_transform(distance):
     y = (SET_INPUT_IMAGE_DIMENSIONS_PX[0] - PROJECTOR_RESOLUTION_HEIGHT)//2
     cropped_final_image = zoomed_image[y:y+PROJECTOR_RESOLUTION_HEIGHT,x:x+PROJECTOR_RESOLUTION_WIDTH]
 
-    shared_transform.display_img("Original",unskewed_image)
-    shared_transform.display_img("Final",cropped_final_image)
+    #shared_transform.display_img("Original",unskewed_image)
+    #shared_transform.display_img("Final",cropped_final_image)
 
     #save image
+    save_path = ZOOM_FOLDER + "zoomed_final.png"
     cv2.imwrite(
         ZOOM_FOLDER + "zoomed_final.png",
         cropped_final_image,
     )
+    return save_path
 
 def pad_image(img):
     height_padding = (PROJECTOR_RESOLUTION_HEIGHT - img.size[0]) // 2
@@ -62,4 +65,4 @@ def pad_image(img):
 
 
 #TEST CALL
-zoom_transform(1.45)
+#zoom_transform(1.45)
