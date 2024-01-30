@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Button } from "react-bootstrap";
 import html2canvas from "html2canvas";
 import Canvas from "./components/Canvas";
 import Sidebar from "./components/Sidebar";
 import Stats from "./components/Stats";
 import AddImageModal from "./components/AddImageModal";
-import "./App.css";
+import "./App.scss";
 
 function App() {
   const [imageDimensions, setImageDimensions] = useState({});
@@ -34,6 +35,13 @@ function App() {
         prevImages.map((i) => (i.url === updatedImage.url ? updatedImage : i))
       );
     }
+  };
+
+  // update an image
+  const onImageUpdate = (image) => {
+    setCurrentImages((prevImages) =>
+      prevImages.map((i) => (i.url === image.url ? image : i))
+    );
   };
 
   // add image modal - uploaded a new image
@@ -116,7 +124,16 @@ function App() {
   const componentRef = useRef();
 
   return (
-    <div className="app">
+    <div className="app-container">
+      <div>
+        <AddImageModal
+          showModal={showModal}
+          handleClose={handleClose}
+          newImageUploaded={(name, w, h) => newImageUploaded(name, w, h)}
+          previousImageAdded={(name) => previousImageAdded(name)}
+          currentImages={currentImages}
+        />
+      </div>
       <div className="left-column">
         <div className="scrollable-div">
           <Sidebar
@@ -129,22 +146,26 @@ function App() {
         </div>
       </div>
       <div className="middle-column">
-        <h3>Canvas</h3>
+        <h4>Canvas</h4>
         <div>
-          <button onClick={() => handleShow()}>Add Image</button>
-          <button onClick={() => saveDraft()}>Save</button>
-        </div>
-        <div>
-          <AddImageModal
-            showModal={showModal}
-            handleClose={handleClose}
-            newImageUploaded={(name, w, h) => newImageUploaded(name, w, h)}
-            previousImageAdded={(name) => previousImageAdded(name)}
-            currentImages={currentImages}
-          />
+          <Button
+            className="add-image-btn"
+            type="button"
+            variant="secondary"
+            onClick={() => handleShow()}
+          >
+            Add Image
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => saveDraft()}>
+            Save
+          </Button>
         </div>
         <div className="canvas-container">
-          <Canvas images={currentImages} ref={componentRef} />
+          <Canvas
+            images={currentImages}
+            onImageUpdate={(image) => onImageUpdate(image)}
+            ref={componentRef}
+          />
         </div>
       </div>
       <div className="right-column">

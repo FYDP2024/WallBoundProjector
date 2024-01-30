@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Button, CloseButton } from "react-bootstrap";
 
 const Sidebar = ({ images, deleteCurrentImage, handleEditAndSave }) => {
   const [editedImages, setEditedImages] = useState([]);
@@ -14,16 +15,18 @@ const Sidebar = ({ images, deleteCurrentImage, handleEditAndSave }) => {
   };
 
   return (
-    <div>
-      <h3>Images</h3>
+    <div className="sidebar-container">
+      <h4>Images</h4>
       {editedImages.map((img, index) => (
         <div className="image-preview" key={index}>
-          <button onClick={() => deleteCurrentImage(img.url)}>X</button>
-          <button onClick={() => handleEditAndSave(img)}>
-            {img.isEdit ? "Save" : "Edit"}
-          </button>
-          <h3>{index + 1}.</h3>
-          <div className="prev-row">
+          <div className="preview-top">
+            <h4>{index + 1}.</h4>
+            <CloseButton
+              onClick={() => deleteCurrentImage(img.url)}
+              className="close-button"
+            />
+          </div>
+          <div className="preview-middle">
             <img className="thumbnail" src={"imgs/" + img.url} alt={index} />
             <div>
               <div>
@@ -95,6 +98,15 @@ const Sidebar = ({ images, deleteCurrentImage, handleEditAndSave }) => {
                 </>
               )}
             </div>
+          </div>
+          <div className="edit-image-btn">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => handleEditAndSave(img)}
+            >
+              {img.isEdit ? "Save" : "Edit"}
+            </Button>
           </div>
         </div>
       ))}

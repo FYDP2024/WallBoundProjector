@@ -4,16 +4,16 @@ const Stats = ({ drafts, loadImagesFromDraft }) => {
   const distance = 10;
   const tilt = [4, 6, 8];
   return (
-    <div className="stats-info">
+    <div className="stats-container">
       <div>
-        <h3>Info</h3>
+        <h4>Info</h4>
         <div>Distance: {distance}cm</div>
         <div>Roll (x): {tilt[0]}°</div>
         <div>Roll (y): {tilt[1]}°</div>
         <div>Roll (z): {tilt[2]}°</div>
       </div>
       <div className="stats-drafts">
-        <h3>Drafts</h3>
+        <h4>Drafts</h4>
         <div>
           {drafts.map((draft) => (
             <>
