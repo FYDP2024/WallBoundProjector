@@ -1,0 +1,107 @@
+.app-container {
+  display: flex;
+  height: 100vh;
+  .left-column {
+    width: 25%;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 15px;
+    .sidebar-container {
+      .image-preview {
+        margin-top: 16px;
+        margin-bottom: 8px;
+        .preview-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+          h4 {
+            margin: 0;
+          }
+          .close-button {
+            box-shadow: none;
+          }
+        }
+        .preview-middle {
+          display: flex;
+          flex-direction: row;
+          .thumbnail {
+            width: 60px;
+            height: 60px;
+            border: solid 1px black;
+            border-radius: 4px;
+            margin-right: 8px;
+            margin-top: 5px;
+          }
+        }
+        .edit-image-btn {
+          margin-top: 10px;
+          text-align: right;
+        }
+      }
+    }
+  }
+  .right-column {
+    width: 20%;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 15px;
+    .stats-container {
+      .stats-drafts {
+        margin-top: 15px;
+        .image-preview {
+          margin-top: 16px;
+          margin-bottom: 8px;
+          .prev-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            .thumbnail {
+              width: 60px;
+              height: 60px;
+              border: solid 1px black;
+              border-radius: 4px;
+              margin-right: 8px;
+            }
+          }
+        }
+      }
+    }
+  }
+  .middle-column {
+    flex: 1;
+    border: 1px solid #ccc;
+    padding: 15px;
+    .add-image-btn {
+      margin-right: 5px;
+    }
+    .canvas-container {
+      padding-top: 15px;
+      .canvas {
+        width: 440px;
+        height: 440px;
+        border: solid black 1px;
+        position: relative;
+        overflow: hidden;
+        .canvas-image {
+          position: absolute;
+          z-index: 1;
+          border: 1px solid black;
+          background-size: 100% 100%;
+        }
+      }
+    }
+  }
+}
+
+.nav-tabs .nav-link {
+  color: #808080;
+}
+.nav-tabs .nav-link:hover {
+  color: #808080;
+}
+.custom-radio input[type="radio"]:checked {
+  background-color: #808080;
+  border: 2px solid #808080;
+  box-shadow: none;
+}

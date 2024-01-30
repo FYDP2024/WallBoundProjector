@@ -94,7 +94,7 @@ const AddImageModal = ({
                   {uploadedFile && <p>Uploaded file: {uploadedFile}</p>}
                   <Button
                     type="button"
-                    variant="primary"
+                    variant="secondary"
                     onClick={handleUpload}
                     className="mt-2"
                   >
@@ -126,6 +126,7 @@ const AddImageModal = ({
                 {previousUploadedImages.map((imageName, index) => (
                   <ListGroup.Item key={index}>
                     <Form.Check
+                      className="custom-radio"
                       type="radio"
                       label={imageName}
                       name="previousImage"
@@ -142,7 +143,7 @@ const AddImageModal = ({
         </Tabs>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="primary" onClick={() => handleDone()}>
+        <Button variant="secondary" onClick={() => handleDone()}>
           Done
         </Button>
       </Modal.Footer>
