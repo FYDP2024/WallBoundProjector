@@ -179,3 +179,5 @@ const getDraftImageFiles = () => {
 };
 
 app.listen(port, () => {});
+
+deleteAllFiles();
