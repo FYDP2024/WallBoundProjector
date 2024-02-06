@@ -12,6 +12,8 @@ import click
 
 import numpy as np
 
+import math_engine.zoom_transform
+
 '''
 Central raspberry pi device driver
 
@@ -153,11 +155,6 @@ class PolarisController():
 
                 prev_reading = avg
 
-
-
-
-
-
             logging.info("%f %f %f"%acceleration)
             time.sleep(0.1)
 
@@ -179,6 +176,11 @@ class PolarisController():
             print("Pitch: %.1f"%pitch)
             
             time.sleep(0.1)
+
+
+    def update_output_image(self):
+        pass
+        
 
     def start(self):
         Thread(target=self.distance_sensor_poll).start()
