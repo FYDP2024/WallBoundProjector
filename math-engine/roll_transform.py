@@ -30,4 +30,8 @@ def roll_transform(x_degrees, img_path = ROLL_FOLDER + "dumb.jpg"):
     return save_path
 
 #TEST CALL
-#roll_transform(45)
+def main():
+    roll_transform(45) 
+
+if __name__ == '__main__':
+    main()

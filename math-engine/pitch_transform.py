@@ -34,4 +34,8 @@ def pitch_transform(y_degrees, img_path = PITCH_FOLDER + "square_bg.png"):
     return save_path
 
 #TEST CALL
-pitch_transform(10) 
+def main():
+    pitch_transform(10) 
+
+if __name__ == '__main__':
+    main()

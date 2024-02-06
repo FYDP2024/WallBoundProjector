@@ -65,4 +65,8 @@ def pad_image(img):
 
 
 #TEST CALL
-#zoom_transform(1.45)
+def main():
+    zoom_transform(1.45) 
+
+if __name__ == '__main__':
+    main()
