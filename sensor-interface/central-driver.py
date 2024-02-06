@@ -161,6 +161,8 @@ class PolarisController():
             logging.info("%f %f %f"%acceleration)
             time.sleep(0.1)
 
+    
+
     def display_readings(self):
         while True:
             click.clear()
