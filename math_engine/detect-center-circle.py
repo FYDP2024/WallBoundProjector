@@ -90,47 +90,34 @@ def get_corner_circles(img_path = PICAM_IMG_PATH):
     else:
         print("I DIDNT DETECT ANY CIRCLES T_T")
         return []
-WORLD_COORDS = [(450,250),(450,165),(550,250),(550,165)]
+WORLD_COORDS = [(450,250),(450,165),(550,165),(550,250)]
+
 def calculate_yaw():
     circle_coords = np.delete(get_corner_circles(),2,1)
     sorted_indices = np.lexsort((circle_coords[:, 1], circle_coords[:, 0]))
     sorted_circle_coords = circle_coords[sorted_indices]
-    print(sorted_circle_coords)
     # Assuming circle_coords is a list of (x, y) coordinates of detected circles
     # and world_coords is a list of corresponding 3D world coordinates
 
     # Convert to NumPy arrays
     world_coords = np.array(WORLD_COORDS, dtype=np.float32)
     
-
-    # Add a homogeneous coordinate (1) to 2D coordinates
-    homogeneous_circle_coords = np.column_stack((circle_coords, np.ones(circle_coords.shape[0])))
-
-    # Create the linear system (AX = 0)
-    A = np.zeros((8, 9))
-    for i in range(4):
-        A[2*i, :3] = -world_coords[i, :]
-        A[2*i, 6:] = world_coords[i, :] * homogeneous_circle_coords[i, 0]
-        A[2*i + 1, 3:6] = -world_coords[i, :]
-        A[2*i + 1, 6:] = world_coords[i, :] * homogeneous_circle_coords[i, 1]
-
-    # Solve the linear system
-    _, _, V = cv2.SVDecomp(A)
-    H = V[-1, :].reshape((3, 3))
-
-    # Factorize H into K and R
-    K, R = cv2.RQ(H)
-
-    # Normalize K to have a positive focal length
-    if K[0, 0] < 0:
-        K = -K
-        R = -R
-
-    # Extract yaw angle
-    yaw = np.arctan2(R[1, 0], R[0, 0])
+    M = cv2.getPerspectiveTransform(sorted_circle_coords,world_coords)
+    picam_img = shared_transform.read_img(PICAM_IMG_PATH)
+    shared_transform.display_img("original", picam_img)
+    dst = cv2.warpPerspective(picam_img,M,(picam_img.shape[0],picam_img.shape[1]))
+    shared_transform.display_img("warped",dst)
+    # Decompose the transformation matrix into rotation matrix R and translation vector T
+    retval, R, T, N = cv2.decomposeHomographyMat(M, np.eye(3))
+    
+    r = R[0]
+    print(r)
+    # Extract yaw angle from the rotation matrix
+    yaw = np.arctan2(r[1, 0], r[0, 0])
 
     # Print the yaw angle in degrees
     print("Yaw Angle: ", np.degrees(yaw))
+
 
 def main():
     calculate_yaw()
