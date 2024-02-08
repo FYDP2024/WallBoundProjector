@@ -101,6 +101,7 @@ def calculate_yaw():
 
     # Convert to NumPy arrays
     world_coords = np.array(WORLD_COORDS, dtype=np.float32)
+    
 
     # Add a homogeneous coordinate (1) to 2D coordinates
     homogeneous_circle_coords = np.column_stack((circle_coords, np.ones(circle_coords.shape[0])))
