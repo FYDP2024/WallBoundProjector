@@ -10,51 +10,33 @@ import shared_transform
 import cv2 
 import numpy as np 
 
-font                   = cv2.FONT_HERSHEY_SIMPLEX
-fontScale              = 1
-fontColor              = (0,255,255)
-thickness              = 1
-lineType               = 2
-
-class Circle:
-    def __init__(self,a,b,r):
-        self.radius = r
-        self.coords = (a,b)
-        self.dist_from_center = 0
-        self.av_colour = None
-    
-    def find_dist_from_center(self,c_x, c_y):
-        a,b = self.coords
-        self.dist_from_center = ()
-
-
 CIRCLE_DIAMETER_M = 0.1
 YAW_FOLDER = shared_transform.CURRENT_FOLDER + "\\yaw_imgs\\"
-PICAM_IMG_PATH = YAW_FOLDER + "straight-on-with-center-circle.jpg"
+PICAM_IMG_PATH = YAW_FOLDER + "green_right.png"
 
-def get_yaw_measurement(distance_m,img_path):
+def get_corner_circles(img_path = PICAM_IMG_PATH):
     #load picam image
-    picam_img = shared_transform.read_img(YAW_FOLDER+img_path)
+    picam_img = shared_transform.read_img(img_path)
     
-    #get green circles
-                #r,g,b
-    green_low = np.array([0,0,0])
-    green_high = np.array([200,255,200])    
+    # OPTION: get green circles
+    # green_low = np.array([0,0,0])
+    # green_high = np.array([200,255,200])    
     # mask = cv2.inRange(picam_img, green_low, green_high)
     # cv2.imshow("green?", mask)
     # cv2.waitKey(0)
     
-    # Convert to grayscale. 
+    # OPTION: Convert to grayscale. 
     gray = cv2.cvtColor(picam_img, cv2.COLOR_BGR2GRAY) 
     # Blur using 3 * 3 kernel. 
     gray_blurred = cv2.blur(gray, (3, 3)) 
     #denoise
     denoised = cv2.bilateralFilter(gray_blurred,9,75,75)
-    cv2.imshow("denoise",denoised)
-    cv2.waitKey(0)
+    #cv2.imshow("denoise",denoised)
+    #cv2.waitKey(0)
+
+
     DP = 1
     MINDIST = 50
-
     # Apply Hough transform on the blurred image. 
     detected_circles = cv2.HoughCircles(
                         image = denoised,  
@@ -68,12 +50,14 @@ def get_yaw_measurement(distance_m,img_path):
 
     # Draw circles that are detected. 
     if detected_circles is not None: 
-        circles = np.uint16(np.around(detected_circles))[0]
-
         #sort by radius
-        sorted_indices = np.argsort(circles[:, 2])
+        sorted_indices = np.argsort(detected_circles[0][:, 2])
+        sorted_raw_circles = detected_circles[0][sorted_indices]
+
         # Use the sorted indices to reorder the array
+        circles = np.uint16(np.around(detected_circles))[0]
         sorted_circles = circles[sorted_indices]
+        
         #find the circle closest to center
 
         for i in circles:
@@ -98,15 +82,57 @@ def get_yaw_measurement(distance_m,img_path):
 
         for c in corner_circles:
             a, b, r = c[0],c[1],c[2]
-            cv2.circle(picam_img, (a, b), r, (0, 255, 0),-1)            
-        cv2.imshow("Detected Circle", picam_img) 
-        cv2.waitKey(0) 
+            cv2.circle(picam_img, (a, b), r, (0, 255, 0),-1)      
+
+        #cv2.imshow("Detected Circle", picam_img) 
+        #cv2.waitKey(0) 
+        return sorted_raw_circles[closest_index:closest_index+4]
     else:
         print("I DIDNT DETECT ANY CIRCLES T_T")
+        return []
+WORLD_COORDS = [(450,250),(450,165),(550,250),(550,165)]
+def calculate_yaw():
+    circle_coords = np.delete(get_corner_circles(),2,1)
+    sorted_indices = np.lexsort((circle_coords[:, 1], circle_coords[:, 0]))
+    sorted_circle_coords = circle_coords[sorted_indices]
+    print(sorted_circle_coords)
+    # Assuming circle_coords is a list of (x, y) coordinates of detected circles
+    # and world_coords is a list of corresponding 3D world coordinates
+
+    # Convert to NumPy arrays
+    world_coords = np.array(WORLD_COORDS, dtype=np.float32)
+
+    # Add a homogeneous coordinate (1) to 2D coordinates
+    homogeneous_circle_coords = np.column_stack((circle_coords, np.ones(circle_coords.shape[0])))
+
+    # Create the linear system (AX = 0)
+    A = np.zeros((8, 9))
+    for i in range(4):
+        A[2*i, :3] = -world_coords[i, :]
+        A[2*i, 6:] = world_coords[i, :] * homogeneous_circle_coords[i, 0]
+        A[2*i + 1, 3:6] = -world_coords[i, :]
+        A[2*i + 1, 6:] = world_coords[i, :] * homogeneous_circle_coords[i, 1]
+
+    # Solve the linear system
+    _, _, V = cv2.SVDecomp(A)
+    H = V[-1, :].reshape((3, 3))
+
+    # Factorize H into K and R
+    K, R = cv2.RQ(H)
+
+    # Normalize K to have a positive focal length
+    if K[0, 0] < 0:
+        K = -K
+        R = -R
+
+    # Extract yaw angle
+    yaw = np.arctan2(R[1, 0], R[0, 0])
+
+    # Print the yaw angle in degrees
+    print("Yaw Angle: ", np.degrees(yaw))
 
 def main():
-    get_yaw_measurement(4,"green_right.png")
-    get_yaw_measurement(4,"green_straight.png")
+    calculate_yaw()
 
 if __name__ == '__main__':
     main()
