@@ -31,7 +31,7 @@ def warpAffine(img, zoom = 1, angle = 0, coord=None):
 #return matrix for transformation based on input in degrees
 #edit input degrees so that the transformation is correct (not so sensitive?)
 def get_yaw_z_transform_matrix(z_degrees,shape): #TODO: yaw, also very sensitive
-    theta_rad = np.deg2rad(z_degrees/100)
+    theta_rad = np.deg2rad(z_degrees/2000)
     print(theta_rad)
     R = np.array([[np.cos(theta_rad),  0, np.sin(theta_rad)],
                   [0,                  1, 0],
