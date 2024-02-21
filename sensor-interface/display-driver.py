@@ -36,7 +36,7 @@ class DisplayController():
 
                 if self.img != "":
                     try:
-                    	self.screen.blit(self.img, (self.CENTER_X-self.img.get_width()//2,self.CENTER_Y-self.img.get_height()//2))
+                        self.screen.blit(self.img, (self.CENTER_X-self.img.get_width()//2,self.CENTER_Y-self.img.get_height()//2))
                     except:
                         pass
                 pygame.display.update()

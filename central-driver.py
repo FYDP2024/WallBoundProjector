@@ -10,9 +10,19 @@ from threading import Thread
 
 import click
 
+import time
+import pygame
+import os
+import cv2
+
 import numpy as np
 
-import math_engine.zoom_transform
+from math_engine.zoom_transform import zoom_transform
+from math_engine.roll_transform import roll_transform
+from math_engine.pitch_transform import pitch_transform
+import math_engine.shared_transform as sharedtransform
+
+from helpers.helpers import SimpleMovingAverage
 
 '''
 Central raspberry pi device driver
@@ -56,8 +66,19 @@ class PolarisController():
             self.pitch = 0
             self.yaw = 0
 
+            self.roll_offset = 2
+
             # Camera data
             self.img_path = ""
+
+            # User input
+            self.input_image_path = "test_frame.png"
+
+            #Result Image
+            self.valid_img = False
+            self.result_img = []
+
+            #pygame window
 
             '''
             Init connections to the: 
@@ -94,7 +115,7 @@ class PolarisController():
                     logging.info("Chip Temperature:" + str(temperature)+ "℃")
                 self.lidar_ser.reset_input_buffer()
 
-                self.distance = distance
+                return distance
                 
             # if bytes_serial[0] == "Y" and bytes_serial[1] == "Y":
             #     distL = int(bytes_serial[2].encode("hex"), 16)
@@ -118,45 +139,44 @@ class PolarisController():
 
         # collect last 10 distance readings and only update
         # when there is a change to the mode of the last 10
-
+        distance = SimpleMovingAverage(5)
         while True:
-            self.read_distance_sensor()
-            time.sleep(0.1)
+
+
+            distance.add_data_point(self.read_distance_sensor())
+            self.distance = distance.calculate_sma()
+            time.sleep(0.05)
             logging.info(str(self.distance) + "cm")
     
     def accelerometer_poll(self):
 
-        alpha = 0.51
-        alpha_prime = 1-alpha
 
-        prev_reading = None
+        roll = SimpleMovingAverage(5)
+        pitch = SimpleMovingAverage(5)
+        
 
         while True:
             #print("%f %f %f"%self.accelerometer.acceleration)
 
             acceleration = self.accelerometer.acceleration
 
-            if prev_reading == None:
-                self.roll = acceleration[0]
-                self.pitch = acceleration[1]
-                self.yaw = acceleration[2]
+            if acceleration != (0,0,0):
 
-                self.accelerometer_reading = acceleration
+                roll.add_data_point(-1 * acceleration[1])
+                pitch.add_data_point(acceleration[0])
 
-                prev_reading = acceleration
-            else:
-                avg = (alpha * acceleration[0], alpha * acceleration[1], alpha * acceleration[2]) + (alpha_prime * prev_reading[0], alpha_prime * prev_reading[1], alpha_prime * prev_reading[2])
+                roll_degrees, pitch_degrees = accelerometer_to_degrees(
+                    roll.calculate_sma(),
+                    pitch.calculate_sma(),
+                    10)
 
-                self.roll = avg[0]
-                self.pitch = avg[1]
-                self.yaw = avg[2]
+                self.roll = roll_degrees
+                self.pitch = pitch_degrees
 
-                self.accelerometer_reading = avg
+                
 
-                prev_reading = avg
-
-            logging.info("%f %f %f"%acceleration)
-            time.sleep(0.1)
+                logging.info("%f %f %f"%acceleration)
+            time.sleep(0.05)
 
     
 
@@ -164,28 +184,153 @@ class PolarisController():
         while True:
             click.clear()
 
-            roll, pitch = accelerometer_to_degrees(self.accelerometer_reading[0],
-                                                   self.accelerometer_reading[1],
-                                                   self.accelerometer_reading[2])
+            
 
-            roll = round(roll,1)
-            pitch = round(pitch,1)
+            roll = round(self.roll,1)
+            pitch = round(self.pitch,1)
 
             print("Distance: %d cm"%self.distance)
             print("Roll: %.1f"%roll)
             print("Pitch: %.1f"%pitch)
+            print("%f %f %f"%self.accelerometer.acceleration)
             
             time.sleep(0.1)
 
 
-    def update_output_image(self):
-        pass
+    def update_output_image_2(self):
+        #read the input image
+        #transform it
+        #save it to the display image folder
+        
+
+        img_path = "sample_grid_smaller.png"
+
+        loaded_input_image = sharedtransform.read_img(img_path) 
+        last_dist = self.distance
+        last_roll = 0
+        last_pitch = 0
+        while True:
+            roll, pitch = self.roll, self.pitch
+
+            roll = roll - self.roll_offset
+
+
+            if (self.distance,roll,pitch) != (last_dist,last_roll,last_pitch):
+                last_dist = self.distance
+                last_roll = self.roll
+                last_pitch = self.pitch
+                #print("start transform")
+                transformed_img = loaded_input_image
+                
+                
+                transformed_img = roll_transform(-1 * roll, transformed_img)
+                print(transformed_img.shape[0]," ",transformed_img.shape[1])
+                transformed_img = pitch_transform(pitch/10.0, transformed_img)
+                transformed_img = zoom_transform(self.distance/100, transformed_img)
+
+                self.result_img = transformed_img
+                self.valid_img = True
+                cv2.imwrite("display_imgs/img.png", transformed_img)
+                #print("end transform")
+            time.sleep(0.1)
+
+    def display_result_img(self):
+        #take the result image and display it in a pygame window
+        #result image is self.result_img
+
+        try:
+            #Initalize Pygame
+            pygame.init()
+
+            #Create Window with custom title
+            pygame.display.set_caption("Wall Mounting Helper")
+            screen = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
+            #screen = pygame.display.set_mode((1200,800))
+            WIDTH, HEIGHT = screen.get_size()
+            CENTER_X, CENTER_Y = WIDTH // 2, HEIGHT // 2
+
+        except Exception as e:
+            print(e)
+            exit()
+
+        
+
+        last_time = 0
+        while True:
+            try:
+                screen.fill((0,0,0))
+
+                if self.valid_img:
+                    res_img = pygame.image.frombuffer(self.result_img.tostring(), self.result_img.shape[1::-1], "BGR")
+                
+                    try:
+                        screen.blit(res_img, (CENTER_X-res_img.get_width()//2,CENTER_Y-res_img.get_height()//2))
+                    except:
+                        pass
+
+                pygame.display.update()
+        
+                
+            except KeyboardInterrupt:
+                
+                pygame.quit()
+                
+                break
+            time.sleep(0.1)
+
+    # def update_output_image(self):
+
+    #     #Display
+    #     try:
+    #         #Initalize Pygame
+    #         pygame.init()
+
+    #         #Create Window with custom title
+    #         pygame.display.set_caption("Wall Mounting Helper")
+    #         screen = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
+    #         #screen = pygame.display.set_mode((1200,800))
+    #         WIDTH, HEIGHT = screen.get_size()
+    #         CENTER_X, CENTER_Y = WIDTH // 2, HEIGHT // 2
+
+    #     except Exception as e:
+    #         print(e)
+    #         exit()
+
+        
+
+    #     self.picam_image_filename = "camera_imgs/cam_img.jpg"
+
+    #     img_path = self.input_img_path
+
+    #     loaded_input_image = sharedtransform.read_img(img_path) 
+    #     image_to_display = zoom_transform.zoom_transform(self.distance, loaded_input_image)
+
+    #     while True:
+    #         try:
+    #             screen.fill((0,0,0))
+
+    #             if image_to_display != None:
+    #                 try:
+    #                     screen.blit(image_to_display, (CENTER_X-image_to_display.get_width()//2,CENTER_Y-image_to_display.get_height()//2))
+    #                 except:
+    #                     pass
+    #             pygame.display.update()
+        
+            
+    #         except KeyboardInterrupt:
+                
+    #             pygame.quit()
+                
+    #             break
+    #         time.sleep(0.5)
         
 
     def start(self):
         Thread(target=self.distance_sensor_poll).start()
         Thread(target=self.accelerometer_poll).start()
         Thread(target=self.display_readings).start()
+        Thread(target=self.update_output_image_2).start()
+        Thread(target=self.display_result_img).start()
 
 if __name__ == '__main__':
     polaris_controller = PolarisController()

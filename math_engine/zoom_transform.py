@@ -5,18 +5,24 @@
 # 4. zoom and crop *******
 
 import cv2
-import shared_transform
+import math_engine.shared_transform as sharedtransform
 PROJECTOR_RESOLUTION_HEIGHT = 1080
 PROJECTOR_RESOLUTION_WIDTH = 1920
 
 THROW_RATIO = 88/120 #converts distance to width of projector
 INPUT_IMAGE_DIMENSIONS_IRL = (4,4) #in meters (h,w)
 SET_INPUT_IMAGE_DIMENSIONS_PX = (4000,4000)
-ZOOM_FOLDER = shared_transform.CURRENT_FOLDER + "\\zoom_imgs\\"
+ZOOM_FOLDER = sharedtransform.CURRENT_FOLDER + "\\zoom_imgs\\"
 #input distance in meters and img_path of img to transform
 #returns path of saved image
-def zoom_transform(distance, img_path = ZOOM_FOLDER + "dumb.jpg"):
-    unskewed_image = shared_transform.read_img(img_path) 
+def zoom_transform(distance, input_image):
+
+    print(distance)
+    unskewed_image = input_image
+
+    if distance == 0:
+        print("Distance is 0 error")
+        distance = 100
 
     if unskewed_image.shape[0] < SET_INPUT_IMAGE_DIMENSIONS_PX[0]: #paste onto transparent background if img is smaller than 4k
         transparent_bg = cv2.imread(ZOOM_FOLDER + "4kbg.png")
@@ -36,7 +42,7 @@ def zoom_transform(distance, img_path = ZOOM_FOLDER + "dumb.jpg"):
     img_px_width_to_show = int(round(curr_projection_width_m * SET_INPUT_IMAGE_DIMENSIONS_PX[1] / INPUT_IMAGE_DIMENSIONS_IRL[1]))
 
     zoom = PROJECTOR_RESOLUTION_WIDTH / img_px_width_to_show
-    zoomed_image = shared_transform.warpAffine(unskewed_image, zoom = zoom)
+    zoomed_image = sharedtransform.warpAffine(unskewed_image, zoom = zoom)
     
     #crop image to this pixel size
     x = (SET_INPUT_IMAGE_DIMENSIONS_PX[1] - PROJECTOR_RESOLUTION_WIDTH)//2
@@ -46,12 +52,16 @@ def zoom_transform(distance, img_path = ZOOM_FOLDER + "dumb.jpg"):
     #shared_transform.display_img("Original",unskewed_image)
     #shared_transform.display_img("Final",cropped_final_image)
 
+    #rerturn image data
+    return cropped_final_image
+
     #save image
     save_path = ZOOM_FOLDER + "zoomed_final.png"
     cv2.imwrite(
         ZOOM_FOLDER + "zoomed_final.png",
         cropped_final_image,
     )
+    
     return save_path
 
 def pad_image(img):
