@@ -31,7 +31,7 @@ def get_yaw_by_distances(d_left, d_center):
     d_wall = math.sqrt(d_left**2 + d_center**2 - 2*d_center*d_left*math.cos(math.radians(DEGREES_BETWEEN_SENSORS)))
     beta = math.acos((d_wall**2 + d_center**2 - d_left**2) / (2*d_wall*d_center))
     yaw_angle =  beta - math.pi/2
-    print(math.degrees(yaw_angle))
+    #print(math.degrees(yaw_angle))
     return math.degrees(yaw_angle)/150
 
     
