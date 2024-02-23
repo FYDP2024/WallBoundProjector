@@ -160,23 +160,23 @@ class PolarisController():
 
             acceleration = self.accelerometer.acceleration
 
-            if acceleration != (0,0,0):
+            if acceleration[0] < 0.000001 or acceleration[1] < 0.000001 or acceleration[2] < 0.000001:
+                continue
+            
+            roll.add_data_point(-1 * acceleration[1])
+            pitch.add_data_point(acceleration[0])
 
-                roll.add_data_point(-1 * acceleration[1])
-                pitch.add_data_point(acceleration[0])
+            roll_degrees, pitch_degrees = accelerometer_to_degrees(
+                roll.calculate_sma(),
+                pitch.calculate_sma(),
+                9.87)
 
-                roll_degrees, pitch_degrees = accelerometer_to_degrees(
-                    roll.calculate_sma(),
-                    pitch.calculate_sma(),
-                    10)
+            self.roll = roll_degrees
+            self.pitch = pitch_degrees
 
-                self.roll = roll_degrees
-                self.pitch = pitch_degrees
+            logging.info("%f %f %f"%acceleration)
 
-                
-
-                logging.info("%f %f %f"%acceleration)
-            time.sleep(0.05)
+            time.sleep(0.1)
 
     
 
