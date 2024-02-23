@@ -90,6 +90,8 @@ class PolarisController():
             i2c = busio.I2C(board.SCL, board.SDA)
             self.accelerometer = adafruit_adxl34x.ADXL345(i2c)
 
+            self.yaw_lidar_ser = serial.Serial("/dev/ttyAMA1", 115200)
+
 
         except Exception as e:
             print(e)
@@ -98,6 +100,8 @@ class PolarisController():
 
     def read_distance_sensor(self):
         
+        dist1 = 0
+
         counter = self.lidar_ser.in_waiting # count the number of bytes of the serial port
         if counter > 8:
             bytes_serial = self.lidar_ser.read(9)
@@ -115,24 +119,9 @@ class PolarisController():
                     logging.info("Chip Temperature:" + str(temperature)+ "℃")
                 self.lidar_ser.reset_input_buffer()
 
-                return distance
+                dist1 = distance
                 
-            # if bytes_serial[0] == "Y" and bytes_serial[1] == "Y":
-            #     distL = int(bytes_serial[2].encode("hex"), 16)
-            #     distH = int(bytes_serial[3].encode("hex"), 16)
-            #     stL = int(bytes_serial[4].encode("hex"), 16)
-            #     stH = int(bytes_serial[5].encode("hex"), 16)
-            #     distance = distL + distH*256
-            #     strength = stL + stH*256
-            #     tempL = int(bytes_serial[6].encode("hex"), 16)
-            #     tempH = int(bytes_serial[7].encode("hex"), 16)
-            #     temperature = tempL + tempH*256
-            #     temperature = (temperature/8) - 256
-            #     print("TF-Luna python2 portion")
-            #     print("Distance:"+ str(distance) + "cm\n")
-            #     print("Strength:" + str(strength) + "\n")
-            #     print("Chip Temperature:" + str(temperature) + "℃\n")
-            #     self.lidar_ser.reset_input_buffer()
+            
 
     def distance_sensor_poll(self):
         time.sleep(1)
