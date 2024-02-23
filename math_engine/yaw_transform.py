@@ -8,9 +8,9 @@ import shared_transform
 import math
 
 YAW_FOLDER = shared_transform.CURRENT_FOLDER + "\\yaw_imgs\\"
-def yaw_transform(img_path = YAW_FOLDER + "dumb.jpg"):
+def yaw_transform(d_left, d_center, img_path = YAW_FOLDER + "dumb.jpg"):
 
-    z_degrees = get_yaw_by_distances(1.5,2)
+    z_degrees = get_yaw_by_distances(d_left, d_center)
     unskewed_image = shared_transform.read_img(img_path)
     M = shared_transform.get_yaw_z_transform_matrix(z_degrees, unskewed_image.shape)
     yaw_img = cv2.warpPerspective(unskewed_image, M, (unskewed_image.shape[0], unskewed_image.shape[1]))
