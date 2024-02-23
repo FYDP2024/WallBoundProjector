@@ -26,11 +26,11 @@ def yaw_transform(img_path = YAW_FOLDER + "dumb.jpg"):
     )
     return save_path
 
-DEGREES_BETWEEN_SENSORS = 30
-def get_yaw_by_distances(d_left, d_right):
-    d_wall = math.sqrt(d_left**2 + d_right**2 - 2*d_right*d_left*math.cos(math.radians(DEGREES_BETWEEN_SENSORS)))
-    beta = math.acos((d_wall**2 + d_right**2 - d_left**2) / (2*d_wall*d_right))
-    yaw_angle = math.radians(DEGREES_BETWEEN_SENSORS/2) + beta - math.pi/2
+DEGREES_BETWEEN_SENSORS = 15
+def get_yaw_by_distances(d_left, d_center):
+    d_wall = math.sqrt(d_left**2 + d_center**2 - 2*d_center*d_left*math.cos(math.radians(DEGREES_BETWEEN_SENSORS)))
+    beta = math.acos((d_wall**2 + d_center**2 - d_left**2) / (2*d_wall*d_center))
+    yaw_angle =  beta - math.pi/2
     return -1*math.degrees(yaw_angle)
 
     
