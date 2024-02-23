@@ -17,7 +17,7 @@ ZOOM_FOLDER = sharedtransform.CURRENT_FOLDER + "\\zoom_imgs\\"
 #returns path of saved image
 def zoom_transform(distance, input_image):
 
-    print(distance)
+    #print(distance)
     unskewed_image = input_image
 
     if distance == 0:

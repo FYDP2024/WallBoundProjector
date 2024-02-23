@@ -1,6 +1,7 @@
 import serial
 import time
 import logging
+import math
 
 import board
 import busio
@@ -20,6 +21,7 @@ import numpy as np
 from math_engine.zoom_transform import zoom_transform
 from math_engine.roll_transform import roll_transform
 from math_engine.pitch_transform import pitch_transform
+from math_engine.yaw_transform import yaw_transform
 import math_engine.shared_transform as sharedtransform
 
 from helpers.helpers import SimpleMovingAverage
@@ -59,6 +61,7 @@ class PolarisController():
 
             # Distance measurement: (cm)
             self.distance = 0
+            self.yaw_distance = 0
             
             # Accelerometer measurements: 
             self.accelerometer_reading = (0,0,0)
@@ -66,7 +69,8 @@ class PolarisController():
             self.pitch = 0
             self.yaw = 0
 
-            self.roll_offset = 2
+            self.roll_offset = 2.8
+            self.pitch_offset = -1
 
             # Camera data
             self.img_path = ""
@@ -98,14 +102,12 @@ class PolarisController():
             exit()
 
 
-    def read_distance_sensor(self):
+    def read_distance_sensor(self, sensor):
         
-        dist1 = 0
-
-        counter = self.lidar_ser.in_waiting # count the number of bytes of the serial port
+        counter = sensor.in_waiting # count the number of bytes of the serial port
         if counter > 8:
-            bytes_serial = self.lidar_ser.read(9)
-            self.lidar_ser.reset_input_buffer()
+            bytes_serial = sensor.read(9)
+            sensor.reset_input_buffer()
             
             if bytes_serial[0] == 0x59 and bytes_serial[1] == 0x59: # python3
                 distance = bytes_serial[2] + bytes_serial[3]*256
@@ -117,25 +119,30 @@ class PolarisController():
                 logging.info("Strength:" + str(strength))
                 if temperature != 0:
                     logging.info("Chip Temperature:" + str(temperature)+ "℃")
-                self.lidar_ser.reset_input_buffer()
+                sensor.reset_input_buffer()
 
-                dist1 = distance
+                return distance
                 
             
 
     def distance_sensor_poll(self):
-        time.sleep(1)
+        
 
         # collect last 10 distance readings and only update
         # when there is a change to the mode of the last 10
         distance = SimpleMovingAverage(5)
+        yaw_distance = SimpleMovingAverage(5)
         while True:
-
-
-            distance.add_data_point(self.read_distance_sensor())
+            
+            distance.add_data_point(self.read_distance_sensor(self.lidar_ser))
             self.distance = distance.calculate_sma()
-            time.sleep(0.05)
+            #time.sleep(0.1)
+            yaw_distance.add_data_point(self.read_distance_sensor(self.yaw_lidar_ser))
+            self.yaw_distance = yaw_distance.calculate_sma()
+            time.sleep(0.1)
             logging.info(str(self.distance) + "cm")
+            
+            logging.info(str(self.yaw_distance) + "cm")
     
     def accelerometer_poll(self):
 
@@ -149,7 +156,9 @@ class PolarisController():
 
             acceleration = self.accelerometer.acceleration
 
-            if acceleration[0] < 0.000001 or acceleration[1] < 0.000001 or acceleration[2] < 0.000001:
+            if abs(acceleration[0]) < 0.000001 or abs(acceleration[1]) < 0.000001 or abs(acceleration[2]) < 0.000001:
+                
+                time.sleep(0.1)
                 continue
             
             roll.add_data_point(-1 * acceleration[1])
@@ -170,15 +179,15 @@ class PolarisController():
     
 
     def display_readings(self):
+
         while True:
             click.clear()
-
-            
 
             roll = round(self.roll,1)
             pitch = round(self.pitch,1)
 
             print("Distance: %d cm"%self.distance)
+            print("Yaw Distance: %d cm"%self.yaw_distance)
             print("Roll: %.1f"%roll)
             print("Pitch: %.1f"%pitch)
             print("%f %f %f"%self.accelerometer.acceleration)
@@ -190,31 +199,32 @@ class PolarisController():
         #read the input image
         #transform it
         #save it to the display image folder
-        
-
         img_path = "sample_grid_smaller.png"
 
         loaded_input_image = sharedtransform.read_img(img_path) 
         last_dist = self.distance
         last_roll = 0
         last_pitch = 0
+        
         while True:
             roll, pitch = self.roll, self.pitch
 
             roll = roll - self.roll_offset
+            pitch = pitch - self.pitch_offset
 
 
             if (self.distance,roll,pitch) != (last_dist,last_roll,last_pitch):
                 last_dist = self.distance
                 last_roll = self.roll
                 last_pitch = self.pitch
-                #print("start transform")
+                print("start transform")
                 transformed_img = loaded_input_image
                 
                 
                 transformed_img = roll_transform(-1 * roll, transformed_img)
-                print(transformed_img.shape[0]," ",transformed_img.shape[1])
+                #print(transformed_img.shape[0]," ",transformed_img.shape[1])
                 transformed_img = pitch_transform(pitch/10.0, transformed_img)
+                transformed_img = yaw_transform(self.yaw_distance, self.distance, transformed_img)
                 transformed_img = zoom_transform(self.distance/100, transformed_img)
 
                 self.result_img = transformed_img
