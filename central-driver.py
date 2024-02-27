@@ -136,10 +136,9 @@ class PolarisController():
             
             distance.add_data_point(self.read_distance_sensor(self.lidar_ser))
             self.distance = distance.calculate_sma()
-            #time.sleep(0.1)
             yaw_distance.add_data_point(self.read_distance_sensor(self.yaw_lidar_ser))
             self.yaw_distance = yaw_distance.calculate_sma()
-            time.sleep(0.1)
+            time.sleep(0.01)
             logging.info(str(self.distance) + "cm")
             
             logging.info(str(self.yaw_distance) + "cm")
@@ -158,7 +157,7 @@ class PolarisController():
 
             if abs(acceleration[0]) < 0.000001 or abs(acceleration[1]) < 0.000001 or abs(acceleration[2]) < 0.000001:
                 
-                time.sleep(0.1)
+                time.sleep(0.01)
                 continue
             
             roll.add_data_point(-1 * acceleration[1])
@@ -174,7 +173,7 @@ class PolarisController():
 
             logging.info("%f %f %f"%acceleration)
 
-            time.sleep(0.1)
+            time.sleep(0.01)
 
     
 
@@ -192,7 +191,7 @@ class PolarisController():
             print("Pitch: %.1f"%pitch)
             print("%f %f %f"%self.accelerometer.acceleration)
             
-            time.sleep(0.1)
+            time.sleep(0.01)
 
 
     def update_output_image_2(self):
@@ -235,7 +234,7 @@ class PolarisController():
                 self.valid_img = True
                 cv2.imwrite("display_imgs/img.png", transformed_img)
                 #print("end transform")
-            time.sleep(0.1)
+            time.sleep(0.01)
 
     def display_result_img(self):
         #take the result image and display it in a pygame window
@@ -282,7 +281,7 @@ class PolarisController():
                 pygame.quit()
                 
                 break
-            time.sleep(0.1)
+            time.sleep(0.01)
 
     # def update_output_image(self):
 
@@ -328,7 +327,7 @@ class PolarisController():
     #             pygame.quit()
                 
     #             break
-    #         time.sleep(0.5)
+    #         time.sleep(0.01)
         
 
     def start(self):
