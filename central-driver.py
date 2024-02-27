@@ -198,9 +198,10 @@ class PolarisController():
         #read the input image
         #transform it
         #save it to the display image folder
-        img_path = "sample_grid_smaller.png"
+        img_path = "uploads/image.jpg"
 
-        loaded_input_image = sharedtransform.read_img(img_path) 
+        loaded_input_image = sharedtransform.read_img(img_path)
+        # sharedtransform.display_img("test",loaded_input_image) 
         last_dist = self.distance
         last_roll = 0
         last_pitch = 0
@@ -234,6 +235,11 @@ class PolarisController():
                 self.valid_img = True
                 cv2.imwrite("display_imgs/img.png", transformed_img)
                 #print("end transform")
+
+                
+            
+
+            
             time.sleep(0.01)
 
     def display_result_img(self):
@@ -333,7 +339,7 @@ class PolarisController():
     def start(self):
         Thread(target=self.distance_sensor_poll).start()
         Thread(target=self.accelerometer_poll).start()
-        Thread(target=self.display_readings).start()
+        #Thread(target=self.display_readings).start()
         Thread(target=self.update_output_image_2).start()
         Thread(target=self.display_result_img).start()
 

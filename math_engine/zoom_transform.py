@@ -11,14 +11,15 @@ PROJECTOR_RESOLUTION_WIDTH = 1920
 
 THROW_RATIO = 88/120 #converts distance to width of projector
 INPUT_IMAGE_DIMENSIONS_IRL = (4,4) #in meters (h,w)
-SET_INPUT_IMAGE_DIMENSIONS_PX = (4000,4000)
-ZOOM_FOLDER = sharedtransform.CURRENT_FOLDER + "\\zoom_imgs\\"
+SET_INPUT_IMAGE_DIMENSIONS_PX = (2200,2200)
+ZOOM_FOLDER = sharedtransform.CURRENT_FOLDER + "/zoom_imgs/"
 #input distance in meters and img_path of img to transform
 #returns path of saved image
 def zoom_transform(distance, input_image):
 
     #print(distance)
     unskewed_image = input_image
+    
 
     if distance == 0:
         print("Distance is 0 error")
