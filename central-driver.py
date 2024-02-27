@@ -247,8 +247,8 @@ class PolarisController():
 
             #Create Window with custom title
             pygame.display.set_caption("Wall Mounting Helper")
-            screen = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
-            #screen = pygame.display.set_mode((1200,800))
+            #screen = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
+            screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
             WIDTH, HEIGHT = screen.get_size()
             CENTER_X, CENTER_Y = WIDTH // 2, HEIGHT // 2
 
@@ -272,7 +272,10 @@ class PolarisController():
                         pass
 
                 pygame.display.update()
-        
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
+                        pygame.quit()
+                        break
                 
             except KeyboardInterrupt:
                 
