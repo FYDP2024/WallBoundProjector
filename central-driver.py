@@ -220,12 +220,16 @@ class PolarisController():
                 print("start transform")
                 transformed_img = loaded_input_image
                 
+                #correct distances with pitch 
+                cor = math.cos(math.radians(self.pitch))
+                distance_corrected = self.distance * cor
+                yaw_distance_corrected = self.yaw_distance * cor
                 
                 transformed_img = roll_transform(-1 * roll, transformed_img)
                 #print(transformed_img.shape[0]," ",transformed_img.shape[1])
-                transformed_img = pitch_transform(pitch/10.0, transformed_img)
-                transformed_img = yaw_transform(self.yaw_distance, self.distance, transformed_img)
-                transformed_img = zoom_transform(self.distance/100, transformed_img)
+                transformed_img = pitch_transform(pitch/1000.0, transformed_img)
+                transformed_img = yaw_transform(yaw_distance_corrected, distance_corrected, transformed_img)
+                transformed_img = zoom_transform(distance_corrected/100, transformed_img)
 
                 self.result_img = transformed_img
                 self.valid_img = True

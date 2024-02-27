@@ -30,7 +30,7 @@ def warpAffine(img, zoom = 1, angle = 0, coord=None):
 
 #return matrix for transformation based on input in degrees
 #edit input degrees so that the transformation is correct (not so sensitive?)
-def get_yaw_z_transform_matrix(z_degrees,shape): #TODO: yaw, also very sensitive
+def get_yaw_z_transform_matrix(z_degrees,shape):
     theta_rad = np.deg2rad(z_degrees/100)
     print(theta_rad)
     R = np.array([[np.cos(theta_rad),  0, np.sin(theta_rad)],
@@ -45,9 +45,9 @@ def get_roll_x_transform_matrix(x_degrees,shape): #roll, normal input
                   [0,                0,               1]])
     return center_matrix_transform(R, shape)
 
-def get_pitch_y_transform_matrix(y_degrees,shape): #TODO: pitch, very sensitive
+def get_pitch_y_transform_matrix(y_degrees,shape):
 
-    phi_rad = np.deg2rad(y_degrees/100)
+    phi_rad = np.deg2rad(y_degrees)
     R = np.float32([[1, 0,                0],
                   [0, np.cos(phi_rad), -np.sin(phi_rad)],
                   [0, np.sin(phi_rad),  np.cos(phi_rad)]])
