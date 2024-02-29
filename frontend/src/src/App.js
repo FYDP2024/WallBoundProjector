@@ -119,34 +119,34 @@ function App() {
       body: JSON.stringify({ imageData }),
     });
 
-    // // SEND IMAGE TO THE RASPBERRY PI
-    // // Decode the base64-encoded image data
-    // const base64Data = imageData.replace(/^data:image\/jpeg;base64,/, "");
-    // // Convert the base64-encoded binary data to a Uint8Array
-    // const binaryData = atob(base64Data);
-    // // Create a Uint8Array from the binary data
-    // const uint8Array = new Uint8Array(binaryData.length);
-    // for (let i = 0; i < binaryData.length; i++) {
-    //   uint8Array[i] = binaryData.charCodeAt(i);
-    // }
-    // // Create a Blob from the Uint8Array data
-    // const blob = new Blob([uint8Array], { type: "image/jpeg" });
-    // try {
-    //   const formData = new FormData();
-    //   formData.append("file", blob, "image.jpg");
-    //   const response = await axios.post(
-    //     "http://127.0.0.1:5000/upload",
-    //     formData,
-    //     {
-    //       headers: {
-    //         "Content-Type": "multipart/form-data",
-    //       },
-    //     }
-    //   );
-    //   alert("File successfully uploaded: " + response.data.message);
-    // } catch (error) {
-    //   alert("Upload failed: " + error.message);
-    // }
+    // SEND IMAGE TO THE RASPBERRY PI
+    // Decode the base64-encoded image data
+    const base64Data = imageData.replace(/^data:image\/jpeg;base64,/, "");
+    // Convert the base64-encoded binary data to a Uint8Array
+    const binaryData = atob(base64Data);
+    // Create a Uint8Array from the binary data
+    const uint8Array = new Uint8Array(binaryData.length);
+    for (let i = 0; i < binaryData.length; i++) {
+      uint8Array[i] = binaryData.charCodeAt(i);
+    }
+    // Create a Blob from the Uint8Array data
+    const blob = new Blob([uint8Array], { type: "image/jpeg" });
+    try {
+      const formData = new FormData();
+      formData.append("file", blob, "image.jpg");
+      const response = await axios.post(
+        "http://127.0.0.1:5000/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      alert("File successfully uploaded: " + response.data.message);
+    } catch (error) {
+      alert("Upload failed: " + error.message);
+    }
 
     // get a new list of the drafts
     const getJson = await fetch("http://localhost:3001/getDrafts");
