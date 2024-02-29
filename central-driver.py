@@ -22,7 +22,9 @@ from math_engine.zoom_transform import zoom_transform
 from math_engine.roll_transform import roll_transform
 from math_engine.pitch_transform import pitch_transform
 from math_engine.yaw_transform import yaw_transform
+from math_engine.main_transform import all_transforms
 import math_engine.shared_transform as sharedtransform
+from math_engine.transform_config import transform_config
 
 from helpers.helpers import SimpleMovingAverage
 
@@ -69,15 +71,14 @@ class PolarisController():
             self.pitch = 0
             self.yaw = 0
 
-            self.roll_offset = 2.8
-            self.pitch_offset = -1
-
             # Camera data
             self.img_path = ""
 
             # User input
             self.input_image_path = "test_frame.png"
 
+            # Skew image config object
+            self.config = transform_config()
             #Result Image
             self.valid_img = False
             self.result_img = []
@@ -209,37 +210,28 @@ class PolarisController():
         while True:
             roll, pitch = self.roll, self.pitch
 
-            roll = roll - self.roll_offset
-            pitch = pitch - self.pitch_offset
-
-
             if (self.distance,roll,pitch) != (last_dist,last_roll,last_pitch):
                 last_dist = self.distance
                 last_roll = self.roll
                 last_pitch = self.pitch
                 print("start transform")
-                transformed_img = loaded_input_image
                 
                 #correct distances with pitch 
                 cor = math.cos(math.radians(self.pitch))
                 distance_corrected = self.distance * cor
                 yaw_distance_corrected = self.yaw_distance * cor
                 
-                transformed_img = roll_transform(-1 * roll, transformed_img)
-                #print(transformed_img.shape[0]," ",transformed_img.shape[1])
-                transformed_img = pitch_transform(pitch/1000.0, transformed_img)
-                transformed_img = yaw_transform(yaw_distance_corrected, distance_corrected, transformed_img)
-                transformed_img = zoom_transform(distance_corrected/100, transformed_img)
+                # transformed_img = roll_transform(-1 * roll, transformed_img)
+                # #print(transformed_img.shape[0]," ",transformed_img.shape[1])
+                # transformed_img = pitch_transform(pitch, transformed_img)
+                # transformed_img = yaw_transform(yaw_distance_corrected, distance_corrected, transformed_img)
+                # transformed_img = zoom_transform(distance_corrected/100, transformed_img)
 
-                self.result_img = transformed_img
+                self.result_img = all_transforms(loaded_input_image, roll, pitch, distance_corrected, yaw_distance_corrected, self.config)
                 self.valid_img = True
-                cv2.imwrite("display_imgs/img.png", transformed_img)
+                cv2.imwrite("display_imgs/img.png", self.result_img)
                 #print("end transform")
 
-                
-            
-
-            
             time.sleep(0.01)
 
     def display_result_img(self):
