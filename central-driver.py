@@ -344,6 +344,7 @@ class PolarisController():
         Thread(target=self.display_result_img).start()
 
 if __name__ == '__main__':
+    os.environ['DISPLAY'] = ':0'
     polaris_controller = PolarisController()
     polaris_controller.start()
 
