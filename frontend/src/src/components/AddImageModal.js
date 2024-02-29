@@ -13,6 +13,8 @@ const AddImageModal = ({
   const [uploadedFile, setuploadedFile] = useState("");
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
+  const [lockRatio, setLockRatio] = useState(false);
+  const [ratio, setRatio] = useState({ width: 0, height: 0 });
   const [previousUploadedImages, setPreviousUploadedImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState("");
 
@@ -23,6 +25,8 @@ const AddImageModal = ({
     setSelectedImage("");
     setWidth("");
     setHeight("");
+    setLockRatio(false);
+    setRatio({ width: 0, height: 0 });
     fetch("http://localhost:3001/getImages")
       .then((response) => response.json())
       .then((data) => {
@@ -40,10 +44,16 @@ const AddImageModal = ({
   };
 
   const handleWidthChange = (e) => {
+    if (lockRatio) {
+      setHeight(Math.round(e.target.value * (ratio.height / ratio.width)));
+    }
     setWidth(e.target.value);
   };
 
   const handleHeightChange = (e) => {
+    if (lockRatio) {
+      setWidth(Math.round(e.target.value * (ratio.width / ratio.height)));
+    }
     setHeight(e.target.value);
   };
 
@@ -61,15 +71,30 @@ const AddImageModal = ({
       });
       const data = await response.json();
       setuploadedFile(data.name);
+      setRatio(data.dimensions);
     }
   };
 
   const handleDone = () => {
     if (activeTab === "upload") {
-      newImageUploaded(uploadedFile, width, height);
+      newImageUploaded(uploadedFile, width, height, lockRatio, ratio);
     } else if (activeTab === "previous") {
       previousImageAdded(selectedImage);
     }
+  };
+
+  const handleLockAspectRatio = () => {
+    // we are locking
+    if (!lockRatio) {
+      // both fields are specified or width is specified
+      if ((width !== "" && height !== "") || width !== "") {
+        setHeight(Math.round(width * (ratio.height / ratio.width)));
+        // height is specified
+      } else if (height !== "") {
+        setWidth(Math.round(height * (ratio.width / ratio.height)));
+      }
+    }
+    setLockRatio(!lockRatio);
   };
 
   return (
@@ -115,6 +140,15 @@ const AddImageModal = ({
                     type="number"
                     value={height}
                     onChange={handleHeightChange}
+                  />
+                </Form.Group>
+                <Form.Group controlId="formLockAspectRatio" className="mb-3">
+                  <Form.Check
+                    type="checkbox"
+                    label="Lock Aspect Ratio"
+                    checked={lockRatio}
+                    onChange={() => handleLockAspectRatio()}
+                    className="custom-checkbox"
                   />
                 </Form.Group>
               </Form>

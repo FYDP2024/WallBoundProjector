@@ -3,6 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
+const sharp = require('sharp');
 
 const app = express();
 const port = 3001;
@@ -60,9 +61,19 @@ app.get("/clear", (req, res) => {
 });
 
 // upload new image
-app.post("/upload", upload.single("image"), (req, res) => {
-  const uploadedFilename = req.file.filename;
-  res.json({ name: uploadedFilename });
+app.post("/upload", upload.single("image"), async (req, res) => {
+  try {
+    const uploadedFilename = req.file.filename;
+    const image = sharp(req.file.path);
+    const metadata = await image.metadata();
+    const dimensions = {
+      width: metadata.width,
+      height: metadata.height
+    };
+    res.json({ name: uploadedFilename, dimensions: dimensions });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to process the image' });
+  }
 });
 
 // get a list of all images previously uploaded

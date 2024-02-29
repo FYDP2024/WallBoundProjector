@@ -6,7 +6,7 @@ import Sidebar from "./components/Sidebar";
 import Stats from "./components/Stats";
 import AddImageModal from "./components/AddImageModal";
 import "./App.scss";
-import axios from 'axios';
+import axios from "axios";
 
 function App() {
   const [imageDimensions, setImageDimensions] = useState({});
@@ -46,10 +46,15 @@ function App() {
   };
 
   // add image modal - uploaded a new image
-  const newImageUploaded = (name, w, h) => {
+  const newImageUploaded = (name, w, h, lockRatio, ratio) => {
     setImageDimensions({
       ...imageDimensions,
-      [name]: { width: Number(w), height: Number(h) },
+      [name]: {
+        width: Number(w),
+        height: Number(h),
+        lockRatio: lockRatio,
+        ratio: ratio,
+      },
     });
     const images = currentImages;
     images.push({
@@ -59,6 +64,8 @@ function App() {
       height: h,
       x_pos: 0,
       y_pos: 0,
+      lockRatio: lockRatio,
+      ratio: ratio,
     });
     setCurrentImages(images);
     setShowModal(false);
@@ -75,6 +82,8 @@ function App() {
       height: imageToAdd.height,
       x_pos: 0,
       y_pos: 0,
+      lockRatio: imageToAdd.lockRatio,
+      ratio: imageToAdd.ratio,
     });
     setCurrentImages(images);
     setShowModal(false);
@@ -110,30 +119,34 @@ function App() {
       body: JSON.stringify({ imageData }),
     });
 
-    // SEND IMAGE TO THE RASPBERRY PI
-    // Decode the base64-encoded image data
-    const base64Data = imageData.replace(/^data:image\/jpeg;base64,/, '');
-    // Convert the base64-encoded binary data to a Uint8Array
-    const binaryData = atob(base64Data);
-    // Create a Uint8Array from the binary data
-    const uint8Array = new Uint8Array(binaryData.length);
-    for (let i = 0; i < binaryData.length; i++) {
-      uint8Array[i] = binaryData.charCodeAt(i);
-    }
-    // Create a Blob from the Uint8Array data
-    const blob = new Blob([uint8Array], { type: 'image/jpeg' });
-    try {
-        const formData = new FormData();
-        formData.append('file', blob, "image.jpg");
-        const response = await axios.post('http://127.0.0.1:5000/upload', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
-        alert('File successfully uploaded: ' + response.data.message);
-    } catch (error) {
-        alert('Upload failed: ' + error.message);
-    }
+    // // SEND IMAGE TO THE RASPBERRY PI
+    // // Decode the base64-encoded image data
+    // const base64Data = imageData.replace(/^data:image\/jpeg;base64,/, "");
+    // // Convert the base64-encoded binary data to a Uint8Array
+    // const binaryData = atob(base64Data);
+    // // Create a Uint8Array from the binary data
+    // const uint8Array = new Uint8Array(binaryData.length);
+    // for (let i = 0; i < binaryData.length; i++) {
+    //   uint8Array[i] = binaryData.charCodeAt(i);
+    // }
+    // // Create a Blob from the Uint8Array data
+    // const blob = new Blob([uint8Array], { type: "image/jpeg" });
+    // try {
+    //   const formData = new FormData();
+    //   formData.append("file", blob, "image.jpg");
+    //   const response = await axios.post(
+    //     "http://127.0.0.1:5000/upload",
+    //     formData,
+    //     {
+    //       headers: {
+    //         "Content-Type": "multipart/form-data",
+    //       },
+    //     }
+    //   );
+    //   alert("File successfully uploaded: " + response.data.message);
+    // } catch (error) {
+    //   alert("Upload failed: " + error.message);
+    // }
 
     // get a new list of the drafts
     const getJson = await fetch("http://localhost:3001/getDrafts");
@@ -156,7 +169,9 @@ function App() {
         <AddImageModal
           showModal={showModal}
           handleClose={handleClose}
-          newImageUploaded={(name, w, h) => newImageUploaded(name, w, h)}
+          newImageUploaded={(name, w, h, lockRatio, ratio) =>
+            newImageUploaded(name, w, h, lockRatio, ratio)
+          }
           previousImageAdded={(name) => previousImageAdded(name)}
           currentImages={currentImages}
         />
