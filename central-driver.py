@@ -26,10 +26,6 @@ import math_engine.shared_transform as sharedtransform
 
 from helpers.helpers import SimpleMovingAverage
 
-from flask import Flask, request, jsonify
-import os
-from flask_cors import CORS
-
 '''
 Central raspberry pi device driver
 
@@ -58,12 +54,6 @@ def accelerometer_to_degrees(x, y, z):
 
     return pitch_degrees, roll_degrees
 
-#Flask related consts and functions
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 class PolarisController():
     def __init__(self):
@@ -107,52 +97,10 @@ class PolarisController():
 
             self.yaw_lidar_ser = serial.Serial("/dev/ttyAMA1", 115200)
 
-            #Flask server stuff
-            self.app = Flask(__name__)
-            self.UPLOAD_FOLDER = 'uploads'
-
-            CORS(self.app)
-
-            os.makedirs(self.UPLOAD_FOLDER, exist_ok=True)
-
-            self.register_routes()
-
 
         except Exception as e:
             print(e)
             exit()
-
-    
-    def test_api(self):
-        return("hello world")
-
-    def upload_file(self):
-        if request.method == 'POST':
-            # Check if the post request has the file part
-            if 'file' not in request.files:
-                return jsonify({'message': 'No file part'}), 400
-            file = request.files['file']
-            
-            # If the user does not select a file, the browser submits an
-            # empty file without a filename.
-            if file.filename == '':
-                return jsonify({'message': 'No selected file'}), 400
-            
-            if file and allowed_file(file.filename):
-                filename = file.filename
-                print(filename)
-                file.save(os.path.join(self.UPLOAD_FOLDER, filename))
-                return jsonify({'message': 'File successfully uploaded'}), 200
-            
-            return jsonify({'message': 'Allowed file types are png, jpg, jpeg, gif'}), 400
-        else:
-            # Default to handling GET requests
-            return 'Hello from the upload page (GET request)'
-        
-    
-    def register_routes(self):
-        self.app.add_url_rule('/test', 'test', self.test_api, methods=["GET"])
-        self.app.add_url_rule('/upload', 'upload', self.test_api, methods=["POST"])
 
     def read_distance_sensor(self, sensor):
         
@@ -178,8 +126,6 @@ class PolarisController():
             
 
     def distance_sensor_poll(self):
-        
-
         # collect last 10 distance readings and only update
         # when there is a change to the mode of the last 10
         distance = SimpleMovingAverage(5)
@@ -281,7 +227,7 @@ class PolarisController():
                 last_dist = self.distance
                 last_roll = self.roll
                 last_pitch = self.pitch
-                print("start transform")
+                #print("start transform")
                 transformed_img = loaded_input_image
                 
                 #correct distances with pitch 
@@ -364,7 +310,7 @@ class PolarisController():
         #Thread(target=self.display_readings).start()
         Thread(target=self.update_output_image_2).start()
         Thread(target=self.display_result_img).start()
-       #self.receive_user_image()
+       
         
 
 if __name__ == '__main__':
