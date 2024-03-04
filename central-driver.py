@@ -56,6 +56,7 @@ def accelerometer_to_degrees(x, y, z):
 
     return pitch_degrees, roll_degrees
 
+
 class PolarisController():
     def __init__(self):
         try:
@@ -102,7 +103,6 @@ class PolarisController():
             print(e)
             exit()
 
-
     def read_distance_sensor(self, sensor):
         
         counter = sensor.in_waiting # count the number of bytes of the serial port
@@ -127,8 +127,6 @@ class PolarisController():
             
 
     def distance_sensor_poll(self):
-        
-
         # collect last 10 distance readings and only update
         # when there is a change to the mode of the last 10
         distance = SimpleMovingAverage(5)
@@ -139,7 +137,7 @@ class PolarisController():
             self.distance = distance.calculate_sma()
             yaw_distance.add_data_point(self.read_distance_sensor(self.yaw_lidar_ser))
             self.yaw_distance = yaw_distance.calculate_sma()
-            time.sleep(0.01)
+            time.sleep(0.1)
             logging.info(str(self.distance) + "cm")
             
             logging.info(str(self.yaw_distance) + "cm")
@@ -201,6 +199,10 @@ class PolarisController():
         #save it to the display image folder
         img_path = "uploads/image.jpg"
 
+        old_file_time = os.path.getmtime(img_path)
+
+        #print(old_file_time)
+
         loaded_input_image = sharedtransform.read_img(img_path)
         # sharedtransform.display_img("test",loaded_input_image) 
         last_dist = self.distance
@@ -208,13 +210,22 @@ class PolarisController():
         last_pitch = 0
         
         while True:
+
+            new_file_time = os.path.getmtime(img_path)
+
+            if new_file_time != old_file_time:
+                print("NEW IMAGE: ", new_file_time)
+                loaded_input_image = sharedtransform.read_img(img_path)
+                old_file_time = new_file_time
+            
             roll, pitch = self.roll, self.pitch
 
             if (self.distance,roll,pitch) != (last_dist,last_roll,last_pitch):
                 last_dist = self.distance
                 last_roll = self.roll
                 last_pitch = self.pitch
-                print("start transform")
+                #print("start transform")
+                transformed_img = loaded_input_image
                 
                 #correct distances with pitch 
                 cor = math.cos(math.radians(self.pitch))
@@ -281,59 +292,19 @@ class PolarisController():
                 break
             time.sleep(0.01)
 
-    # def update_output_image(self):
 
-    #     #Display
-    #     try:
-    #         #Initalize Pygame
-    #         pygame.init()
-
-    #         #Create Window with custom title
-    #         pygame.display.set_caption("Wall Mounting Helper")
-    #         screen = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
-    #         #screen = pygame.display.set_mode((1200,800))
-    #         WIDTH, HEIGHT = screen.get_size()
-    #         CENTER_X, CENTER_Y = WIDTH // 2, HEIGHT // 2
-
-    #     except Exception as e:
-    #         print(e)
-    #         exit()
-
-        
-
-    #     self.picam_image_filename = "camera_imgs/cam_img.jpg"
-
-    #     img_path = self.input_img_path
-
-    #     loaded_input_image = sharedtransform.read_img(img_path) 
-    #     image_to_display = zoom_transform.zoom_transform(self.distance, loaded_input_image)
-
-    #     while True:
-    #         try:
-    #             screen.fill((0,0,0))
-
-    #             if image_to_display != None:
-    #                 try:
-    #                     screen.blit(image_to_display, (CENTER_X-image_to_display.get_width()//2,CENTER_Y-image_to_display.get_height()//2))
-    #                 except:
-    #                     pass
-    #             pygame.display.update()
-        
-            
-    #         except KeyboardInterrupt:
-                
-    #             pygame.quit()
-                
-    #             break
-    #         time.sleep(0.01)
-        
+    def receive_user_image(self):
+        self.app.run(debug=True)
 
     def start(self):
+        
         Thread(target=self.distance_sensor_poll).start()
         Thread(target=self.accelerometer_poll).start()
         #Thread(target=self.display_readings).start()
         Thread(target=self.update_output_image_2).start()
         Thread(target=self.display_result_img).start()
+       
+        
 
 if __name__ == '__main__':
     os.environ['DISPLAY'] = ':0'
