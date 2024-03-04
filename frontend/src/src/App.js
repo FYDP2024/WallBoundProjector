@@ -133,7 +133,7 @@ function App() {
                 'Content-Type': 'multipart/form-data',
             },
         });
-        alert('File successfully uploaded: ' + response.data.message);
+        //alert('File successfully uploaded: ' + response.data.message);
     } catch (error) {
         alert('Upload failed: ' + error.message);
     }
