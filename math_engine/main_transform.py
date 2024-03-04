@@ -1,15 +1,18 @@
 # takes all measurements outputs skewed input image
 # roll, pitch, yaw zoom
 import cv2
-import shared_transform as sharedtransform
-import transform_config as transform_config
+import math_engine.shared_transform as sharedtransform
+import math_engine.transform_config as transform_config
 import math
-from transform_config import transform_config
+from math_engine.transform_config import transform_config
 
 ZOOM_FOLDER = sharedtransform.CURRENT_FOLDER + "/zoom_imgs/"
 def all_transforms(input_image, roll_degrees, pitch_degrees, distance, yaw_distance, config: transform_config):
     yaw_degrees = get_yaw_by_distances(yaw_distance, distance, config.degrees_between_dist_sensors)
 
+    # correct distance by yaw angle
+    #distance = distance * math.cos(math.radians(yaw_degrees))
+    
     x_degrees = roll_degrees - config.roll_offset
     y_degrees = (pitch_degrees - config.pitch_offset)*config.pitch_scale_factor
     z_degrees = yaw_degrees*config.yaw_scale_factor
@@ -58,7 +61,7 @@ def get_yaw_by_distances(d_left, d_center, degrees_between_dist_sensors):
     d_wall = math.sqrt(d_left**2 + d_center**2 - 2*d_center*d_left*math.cos(math.radians(degrees_between_dist_sensors)))
     beta = math.acos((d_wall**2 + d_center**2 - d_left**2) / (2*d_wall*d_center))
     yaw_angle =  beta - math.pi/2
-    return math.degrees(yaw_angle)
+    return math.degrees(yaw_angle) * -1
 
 def main():
     img = sharedtransform.read_img(ZOOM_FOLDER+"dumb.jpg")

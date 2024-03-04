@@ -229,8 +229,8 @@ class PolarisController():
                 
                 #correct distances with pitch 
                 cor = math.cos(math.radians(self.pitch))
-                distance_corrected = self.distance * cor
-                yaw_distance_corrected = self.yaw_distance * cor
+                distance_corrected = ((self.distance + self.config.distancee_offset_cm) / 100) * cor
+                yaw_distance_corrected = ((self.yaw_distance + self.config.distancee_offset_cm) / 100) * cor
                 
                 # transformed_img = roll_transform(-1 * roll, transformed_img)
                 # #print(transformed_img.shape[0]," ",transformed_img.shape[1])
@@ -300,7 +300,7 @@ class PolarisController():
         
         Thread(target=self.distance_sensor_poll).start()
         Thread(target=self.accelerometer_poll).start()
-        #Thread(target=self.display_readings).start()
+        Thread(target=self.display_readings).start()
         Thread(target=self.update_output_image_2).start()
         Thread(target=self.display_result_img).start()
        
