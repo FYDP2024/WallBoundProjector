@@ -108,7 +108,7 @@ function App() {
     });
     // save png
     const canvas = await html2canvas(componentRef.current, {
-      scale: 10,
+      scale: 5,
     });
     const imageData = canvas.toDataURL("image/jpeg");
     await fetch(`http://localhost:3001/saveCanvasImage`, {
