@@ -26,6 +26,10 @@ import math_engine.shared_transform as sharedtransform
 
 from helpers.helpers import SimpleMovingAverage
 
+from flask import Flask, request, jsonify
+import os
+from flask_cors import CORS
+
 '''
 Central raspberry pi device driver
 
@@ -53,6 +57,13 @@ def accelerometer_to_degrees(x, y, z):
     roll_degrees = np.degrees(roll)
 
     return pitch_degrees, roll_degrees
+
+#Flask related consts and functions
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 class PolarisController():
     def __init__(self):
@@ -96,11 +107,52 @@ class PolarisController():
 
             self.yaw_lidar_ser = serial.Serial("/dev/ttyAMA1", 115200)
 
+            #Flask server stuff
+            self.app = Flask(__name__)
+            self.UPLOAD_FOLDER = 'uploads'
+
+            CORS(self.app)
+
+            os.makedirs(self.UPLOAD_FOLDER, exist_ok=True)
+
+            self.register_routes()
+
 
         except Exception as e:
             print(e)
             exit()
 
+    
+    def test_api(self):
+        return("hello world")
+
+    def upload_file(self):
+        if request.method == 'POST':
+            # Check if the post request has the file part
+            if 'file' not in request.files:
+                return jsonify({'message': 'No file part'}), 400
+            file = request.files['file']
+            
+            # If the user does not select a file, the browser submits an
+            # empty file without a filename.
+            if file.filename == '':
+                return jsonify({'message': 'No selected file'}), 400
+            
+            if file and allowed_file(file.filename):
+                filename = file.filename
+                print(filename)
+                file.save(os.path.join(self.UPLOAD_FOLDER, filename))
+                return jsonify({'message': 'File successfully uploaded'}), 200
+            
+            return jsonify({'message': 'Allowed file types are png, jpg, jpeg, gif'}), 400
+        else:
+            # Default to handling GET requests
+            return 'Hello from the upload page (GET request)'
+        
+    
+    def register_routes(self):
+        self.app.add_url_rule('/test', 'test', self.test_api, methods=["GET"])
+        self.app.add_url_rule('/upload', 'upload', self.test_api, methods=["POST"])
 
     def read_distance_sensor(self, sensor):
         
@@ -138,7 +190,7 @@ class PolarisController():
             self.distance = distance.calculate_sma()
             yaw_distance.add_data_point(self.read_distance_sensor(self.yaw_lidar_ser))
             self.yaw_distance = yaw_distance.calculate_sma()
-            time.sleep(0.01)
+            time.sleep(0.1)
             logging.info(str(self.distance) + "cm")
             
             logging.info(str(self.yaw_distance) + "cm")
@@ -200,6 +252,10 @@ class PolarisController():
         #save it to the display image folder
         img_path = "uploads/image.jpg"
 
+        old_file_time = os.path.getmtime(img_path)
+
+        #print(old_file_time)
+
         loaded_input_image = sharedtransform.read_img(img_path)
         # sharedtransform.display_img("test",loaded_input_image) 
         last_dist = self.distance
@@ -207,6 +263,14 @@ class PolarisController():
         last_pitch = 0
         
         while True:
+
+            new_file_time = os.path.getmtime(img_path)
+
+            if new_file_time != old_file_time:
+                print("NEW IMAGE: ", new_file_time)
+                loaded_input_image = sharedtransform.read_img(img_path)
+                old_file_time = new_file_time
+            
             roll, pitch = self.roll, self.pitch
 
             roll = roll - self.roll_offset
@@ -289,59 +353,19 @@ class PolarisController():
                 break
             time.sleep(0.01)
 
-    # def update_output_image(self):
 
-    #     #Display
-    #     try:
-    #         #Initalize Pygame
-    #         pygame.init()
-
-    #         #Create Window with custom title
-    #         pygame.display.set_caption("Wall Mounting Helper")
-    #         screen = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
-    #         #screen = pygame.display.set_mode((1200,800))
-    #         WIDTH, HEIGHT = screen.get_size()
-    #         CENTER_X, CENTER_Y = WIDTH // 2, HEIGHT // 2
-
-    #     except Exception as e:
-    #         print(e)
-    #         exit()
-
-        
-
-    #     self.picam_image_filename = "camera_imgs/cam_img.jpg"
-
-    #     img_path = self.input_img_path
-
-    #     loaded_input_image = sharedtransform.read_img(img_path) 
-    #     image_to_display = zoom_transform.zoom_transform(self.distance, loaded_input_image)
-
-    #     while True:
-    #         try:
-    #             screen.fill((0,0,0))
-
-    #             if image_to_display != None:
-    #                 try:
-    #                     screen.blit(image_to_display, (CENTER_X-image_to_display.get_width()//2,CENTER_Y-image_to_display.get_height()//2))
-    #                 except:
-    #                     pass
-    #             pygame.display.update()
-        
-            
-    #         except KeyboardInterrupt:
-                
-    #             pygame.quit()
-                
-    #             break
-    #         time.sleep(0.01)
-        
+    def receive_user_image(self):
+        self.app.run(debug=True)
 
     def start(self):
+        
         Thread(target=self.distance_sensor_poll).start()
         Thread(target=self.accelerometer_poll).start()
         #Thread(target=self.display_readings).start()
         Thread(target=self.update_output_image_2).start()
         Thread(target=self.display_result_img).start()
+       #self.receive_user_image()
+        
 
 if __name__ == '__main__':
     os.environ['DISPLAY'] = ':0'
