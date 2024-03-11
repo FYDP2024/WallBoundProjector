@@ -11,13 +11,6 @@ const Stats = ({ drafts, loadImagesFromDraft }) => {
   };
   return (
     <div className="stats-container">
-      <div>
-        <h4>Info</h4>
-        <div>Distance: {distance}cm</div>
-        <div>Roll (x): {tilt[0]}°</div>
-        <div>Roll (y): {tilt[1]}°</div>
-        <div>Roll (z): {tilt[2]}°</div>
-      </div>
       <div className="stats-drafts">
         <h4>Drafts</h4>
         <div>
